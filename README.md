@@ -1,4 +1,4 @@
-# PROYECTO NOC
+# Implementacion y Separacion de Responsabilidades en Node.js con TypeScript
 
 Repository Pattern,
 Cron jobs y implementacion de Arquitectura Limpia con TypeScript
