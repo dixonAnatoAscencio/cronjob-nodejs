@@ -1,20 +1,22 @@
-import { CheckService } from "../domain/use-cases/checks/check-service";
-//import { FileSystemDatasource } from "../infrastructure/datasources/file-system.datasorce";
+import { CheckServiceMultiple } from "../domain/use-cases/checks/check-service-multiple";
+import { FileSystemDatasource } from "../infrastructure/datasources/file-system.datasorce";
 import { LogRepositoryImpl } from "../infrastructure/repositories/log.repository.impl";
 import { CronService } from "./cron/cron-service";
 import { EmailService } from "./email/email.service";
 import { SendEmailLogs } from "../domain/use-cases/email/send-email-logs";
 import { PostgresLogDatasource } from "../infrastructure/datasources/postgres-log.datasource";
-import { logRepository } from "../domain/repository/log.repository";
+import { LogRepository } from "../domain/repository/log.repository";
 
-const fileSystemLogRepository = new LogRepositoryImpl(
-  //new FileSystemDatasource(),
+const fsLogRepository = new LogRepositoryImpl(new FileSystemDatasource()); // grabamos en el file system
+
+const postgresLogRepository = new LogRepositoryImpl( // grabamos en la base de datos postgres
   new PostgresLogDatasource(),
 );
+
 const emailService = new EmailService();
 
 export class Server {
-  public static start() {
+  public static async start() {
     console.log("Server started");
 
     //Llamando desde el use case y no desde el servicio
@@ -40,9 +42,8 @@ export class Server {
     //**Cron job
     CronService.createJob("*/5 * * * * *", () => {
       const url = "https://google.com";
-      new CheckService(
-        logRepository,
-
+      new CheckServiceMultiple(
+        [fsLogRepository, postgresLogRepository],
         () => console.log(` ${url} is OK`),
         (error) => console.log(error),
       ).execute(url);
